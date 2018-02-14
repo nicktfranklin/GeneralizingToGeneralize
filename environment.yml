@@ -1,0 +1,16 @@
+name: compgen
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=2.7
+  - anaconda
+  - cython
+  - numpy
+  - scipy
+  - pandas
+  - seaborn
+  - ipywidgets
+  - tqdm
+  - pip:
+    - cython
