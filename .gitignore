@@ -1,3 +1,10 @@
 .idea/*
 *.c
 *.so
+.ipynb*
+build*
+/.ipynb_checkpoints/
+/build/
+Experiment3sim.pkl
+data/
+*.pyc
