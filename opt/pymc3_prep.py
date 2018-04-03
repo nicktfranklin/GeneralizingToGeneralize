@@ -4,7 +4,7 @@ from scipy.special import logsumexp
 from tqdm import tqdm
 
 
-def make_group_model(proc_data, goal_key=None, importance_samples=500):
+def make_group_model(proc_data, goal_key=None, importance_samples=500, exclude_train=0):
 
     n_goals = len(set(proc_data[u'Chosen Goal']))
     n_trials = int(max(proc_data[u'Trial Number']) + 1)
@@ -282,6 +282,19 @@ def make_group_model(proc_data, goal_key=None, importance_samples=500):
         _y, _X_ind, _X_joint, _X_ws, _X_rew, _X_rew_map = make_regressors(data_df=subj_data)
         _q = make_q(subj_data)
         _qwm = make_wmQ(subj_data)
+
+        if exclude_train > 0:
+            train = subj_data.Context < exclude_train
+
+            _y         = _y[~train]
+            _X_ind     = _X_ind[~train, :]
+            _X_joint   = _X_joint[~train, :]
+            _X_ws      = _X_ws[~train, :]
+            _X_rew     = _X_rew[~train, :]
+            _X_rew_map = _X_rew_map[~train, :]
+            _q         = _q[~train, :]
+            _qwm       = _qwm[~train, :]
+
         y.append(_y)
         X_ind.append(_X_ind)
         X_joint.append(_X_joint)
@@ -292,7 +305,6 @@ def make_group_model(proc_data, goal_key=None, importance_samples=500):
 
         X_Q.append(_q)
         X_wm.append(_qwm)
-
 
     # all of these predictors are untransformed
     return {

@@ -47,8 +47,9 @@ def get_closest_goals(uids, data_frame):
 
     return pd.concat(closest_goal_df)
 
-def generate_exclusion_list(processed_data, phase='Phase', training_contexts=5, goal_chance=1/3.,
-                            binom=True):
+def generate_exclusion_list(processed_data, training_contexts=5, goal_chance=1/3.,
+                            binom=True, return_measures=False):
+
     from scipy.stats import binom_test
     from sklearn import mixture
 
@@ -77,7 +78,6 @@ def generate_exclusion_list(processed_data, phase='Phase', training_contexts=5, 
         cluster_data = np.asarray([
             list(X['Accuracy in Repeated Trials']),
             list(X['Binomial Chance Probability (Training)']),
-            # list(X['Chose Closest Goal']),
         ]).T
     else:
         cluster_data = np.asarray([
@@ -112,6 +112,11 @@ def generate_exclusion_list(processed_data, phase='Phase', training_contexts=5, 
 
     X['Group'] = 'Excluded'
     X.loc[X.Cluster == max_clust, 'Group'] = "Included"
+
+    if return_measures:
+        # return X[['Accuracy in Repeated Trials', 'Accuracy in Non-Repeated Trials',
+        #           'Binomial Chance Probability (Training)', 'Group']]
+        return X
 
     return X[X.Group == 'Excluded'].index.tolist()
 
