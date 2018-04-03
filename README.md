@@ -25,5 +25,12 @@ This library run on Python 2.7 and unlike most python code, requries
  The cython code will need be compiled manually:  
  ```python setup.py build_ext --inplace```  
   
-### Files:
+## Todo!
+* Match the experiment number to match the manuscript draft. As they are labeled here,  
+    * Experiment 1: 3 Goals, 9 contexts
+    * Experiment 2: 4 Goals, 10 Contexts
+    * Experiment 3: 2 Goals, 6 contexts
+    
+* The analyses for experiment 3 will be updated as I fill in that section
+* Need to write a description with the list of files
 ---
