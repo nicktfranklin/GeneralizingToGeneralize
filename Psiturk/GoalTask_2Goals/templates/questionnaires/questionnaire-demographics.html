@@ -1,0 +1,118 @@
+<div id="container-questionnaire">
+    <h1>Task Complete</h1>
+
+    <hr>
+
+    <p>Thank you for your contributions to science! Before you finish the HIT, please complete
+        a short voluntary survey below before finishing the experiment (click Next to Proceed) </p>
+
+    <div class="instructions well">
+
+        <form id="postquiz" action="debrief" method="post">
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    Do you favor your right hand or your left hand when writing, brushing your teeth
+                    and in other daily activities?
+                </div>
+                <div class="col-md-5">
+                    <select id="handedness" name="handedness">
+                        <option value="DNR" SELECTED>I prefer not to answer</option>
+                        <option value="Left">Left-Hand</option>
+                        <option value="Right">Right-Hand</option>
+                        <option value="Both">I use both hands equally</option>
+                    </select>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    What is your <b>gender</b>?
+                </div>
+                <div class="col-md-5">
+                    <textarea id="gender" name="gender" rows="1" cols="15">
+
+                    </textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    What is your <b>age</b>?
+                </div>
+                <div class="col-md-5">
+                    <textarea id="age" name="age" rows="1" cols="10">
+
+                    </textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    What is your highest level of <b>education</b>?
+                </div>
+                <div class="col-md-5">
+                    <select id="education" name="education">
+                        <option value="DNR" SELECTED>I prefer not to answer</option>
+                        <option value="Elementary school">Elementary school</option>
+                        <option value="Middle school">Middle school</option>
+                        <option value="High school">High school</option>
+                        <option value="Some College">Some college</option>
+                        <option value="Associates Degree">Associates Degree</option>
+                        <option value="Bachelor's Degree">Bachelor's Degree</option>
+                        <option value="Some Graduate School">Some Graduate School</option>
+                        <option value="Graduate/Professional Degree">Graduate/Professional Degree</option>
+                    </select>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    What is your <b>ethnicity</b>?
+                </div>
+                <div class="col-md-5">
+                    <select id="ethnicity" name="ethnicity">
+                        <option value="DNR" SELECTED>I prefer not to answer</option>
+                        <option value="Asian">Asian</option>
+                        <option value="African American">African American</option>
+                        <option value="Caucasian">Caucasian</option>
+                        <option value="Native American">Native American</option>
+                        <option value="Native Hawaiian or Pacific Islander">Native Hawaiian or Pacific Islander</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+
+        </form>
+    </div>
+
+    <hr>
+
+    <div class="instructionsnav">
+        <div class="row">
+            <div class="col-xs-2">
+            </div>
+            <div class="col-xs-7">
+            </div>
+            <div class="col-xs-3">
+                <button type="button" id="next" value="next" class="btn btn-primary btn-lg continue">
+                    Next <span class="glyphicon glyphicon-arrow-right"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</div>

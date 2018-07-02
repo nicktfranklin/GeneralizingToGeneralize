@@ -1,0 +1,157 @@
+å<div id="container-questionnaire">
+    <h1>Task Complete</h1>
+
+    <hr>
+
+
+    <p>Thank you for your contributions to science! Before you finish the HIT, please complete
+        a short voluntary survey below before finishing the experiment (click "Finish Experiment" when you are done) </p>
+
+    <div class="instructions well">
+
+        <form id="postquiz" action="debrief" method="post">
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    On a scale of 1-10 (where 10 is the most engaged), please rate how <b>engaging</b> you found the
+                    game:
+                </div>
+                <div class="col-md-5">
+                    <select id="engagement" name="engagement">
+                        <option value="DNR" SELECTED>I prefer not to answer</option>
+                        <option value="10">10 - Very engaging</option>
+                        <option value="9">9</option>
+                        <option value="8">8</option>
+                        <option value="7">7</option>
+                        <option value="6">6</option>
+                        <option value="5">5 - Moderately</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1</option>
+                        <option value="0">0 - Not engaged</option>
+                    </select>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    On a scale of 1-10 (where 10 is the most difficult), please rate how <b>difficult</b> you found the
+                    game:
+                </div>
+                <div class="col-md-5">
+                    <select id="difficulty" name="difficulty">
+                        <option value="DNR" SELECTED>I prefer not to answer</option>
+                        <option value="10">10 - Very difficult</option>
+                        <option value="9">9</option>
+                        <option value="8">8</option>
+                        <option value="7">7</option>
+                        <option value="6">6</option>
+                        <option value="5">5 - Moderately difficult</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1</option>
+                        <option value="0">0 - Not difficult at all</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="row question">
+                <div class="col-md-7">
+                    On a scale of 1-10 (where 1 is the easiest), please rate how difficult you found moving
+                    with your <b>left</b> hand:
+                </div>
+                <div class="col-md-5">
+                    <select id="LeftDifficulty" name="LeftDifficulty">
+                        <option value="DNR" SELECTED>I prefer not to answer</option>
+                        <option value="10">10 - Very difficult</option>
+                        <option value="9">9</option>
+                        <option value="8">8</option>
+                        <option value="7">7</option>
+                        <option value="6">6</option>
+                        <option value="5">5 - Moderately</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1 - Very easy</option>
+                    </select>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    On a scale of 1-10 (where 1 is the easiest), please rate how difficult you found moving
+                    with your <b>right</b> hand:
+                </div>
+                <div class="col-md-5">
+                    <select id="RightDifficulty" name="RightDifficulty">
+                        <option value="DNR" SELECTED>I prefer not to answer</option>
+                        <option value="10">10 - Very difficult</option>
+                        <option value="9">9</option>
+                        <option value="8">8</option>
+                        <option value="7">7</option>
+                        <option value="6">6</option>
+                        <option value="5">5 - Moderately</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1 - Very easy</option>
+                    </select>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    Where there any strategies that you found helpful in the game?
+                </div>
+                <div class="col-md-5">
+                    <textarea id="strategy" name="strategy" rows="3" cols="40">I prefer not to answer
+                    </textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-7">
+                    We are always looking to improve! Is there anything you'd like to let us know,
+                    such as any problem you may have had with the HIT?
+                </div>
+                <div class="col-md-5">
+                    <textarea id="freeform" name="freeform" rows="3" cols="40">I prefer not to answer
+                    </textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+        </form>
+    </div>
+
+    <hr>
+
+    <div class="instructionsnav">
+        <div class="row">
+            <div class="col-xs-2">
+            </div>
+            <div class="col-xs-7">
+            </div>
+            <div class="col-xs-3">
+                <button type="button" id="next" value="next" class="btn btn-primary btn-lg continue">
+                    Finish Experiment <span class="glyphicon glyphicon-arrow-right"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</div>

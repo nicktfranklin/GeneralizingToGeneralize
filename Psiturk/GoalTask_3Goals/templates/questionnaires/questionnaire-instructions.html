@@ -1,0 +1,95 @@
+<div id="container-instructions">
+    <h1>Instructions:</h1>
+
+    <hr>
+
+    <p>
+        <div id="my_head">
+            Before you begin, please answer the following questions to confirm you understand how the game works.
+            You can go back and read the instructions again if you don't remember.
+        </div>
+    </p>
+
+
+    <div class="instructions well">
+
+        <form id="postquiz" action="debrief" method="post">
+
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-12">
+                    What do the colors tell you?
+                    <!--</div>-->
+                <!--<div>-->
+                    <select id="q1" name="q1">
+                        <option value="DNR" SELECTED>[Please select a response]</option>
+                        <option value="Goal">What the goals are worth</option>
+                        <option value="Map">Which buttons move you around the maze</option>
+                        <option value="Both">Both</option>
+                    </select>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-12">
+                    For any given color, all of the goals
+                <!--</div>-->
+                <!--<div class="col-md-5">-->
+                    <select id="q2" name="q2">
+                        <option value="DNR" SELECTED>[Please select a response]</option>
+                        <option value="Location">in the same location</option>
+                        <option value="Letter">with the same letter</option>
+                    </select>
+                    are worth the same number of points.
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div class="col-md-11">
+                    My bonus payment will be determined by
+                <!--</div>-->
+                <!--<div class="col-md-5">-->
+                    <select id="q3" name="q3">
+                        <option value="DNR" SELECTED>[Please select a response]</option>
+                        <option value="None">I won't recieve a bonus payment</option>
+                        <option value="Speed">How quickly I finish</option>
+                        <option value="Points">How many points I earn</option>
+                        <option value="Both">Both</option>
+                    </select>
+
+                </div>
+            </div>
+            <!-- end of a question -->
+
+        </form>
+    </div>
+
+    <hr>
+
+    <div class="instructionsnav">
+        <div class="row">
+
+            <div class="col-xs-2">
+                <div class="left", id="backbutton">
+                    <button type="button" id="back" value="back" class="btn btn-primary btn-lg previous">
+                                <span class="glyphicon glyphicon-arrow-left"></span> Instructions
+                    </button>
+                </div>
+            </div>
+            <div class="col-xs-7">
+            </div>
+            <div class="col-xs-3", id="button">
+                <button type="button" id="next" value="next" class="btn btn-primary btn-lg continue">
+                    Check Answers
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
