@@ -89,6 +89,8 @@ def generate_exclusion_list(processed_data, training_contexts=5, goal_chance=1/3
     bic = []
     n_components_range = range(1, 3)
     cv_types = ['spherical', 'tied', 'diag', 'full']
+    winning_model = None
+    winning_cluster_size = None
     for cv_type in cv_types:
         for n_components in n_components_range:
             # Fit a mixture of Gaussians with EM
@@ -98,10 +100,13 @@ def generate_exclusion_list(processed_data, training_contexts=5, goal_chance=1/3
             if bic[-1] < lowest_bic:
                 lowest_bic = bic[-1]
                 best_gmm = gmm
+                winning_model = cv_type
+                winning_cluster_size = n_components
+
     clst = best_gmm
     cluster_ID = clst.predict(cluster_data)
     X['Cluster'] = cluster_ID
-
+    print "N clusters = %d, Covarainace = %s" % (winning_cluster_size, winning_model)
     # get the cluster to keep
     max_clust = -1
     max_clust_members = 0
@@ -110,13 +115,13 @@ def generate_exclusion_list(processed_data, training_contexts=5, goal_chance=1/3
             max_clust_members = np.sum(X.Cluster == c)
             max_clust = c
 
-    X['Group'] = 'Excluded'
-    X.loc[X.Cluster == max_clust, 'Group'] = "Included"
+    X['Group'] = 'Excl.'
+    X.loc[X.Cluster == max_clust, 'Group'] = "Incl."
 
     if return_measures:
         # return X[['Accuracy in Repeated Trials', 'Accuracy in Non-Repeated Trials',
         #           'Binomial Chance Probability (Training)', 'Group']]
         return X
 
-    return X[X.Group == 'Excluded'].index.tolist()
+    return X[X.Group == 'Excl.'].index.tolist()
 
