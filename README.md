@@ -1,10 +1,5 @@
 # Simulations and analyses for [PAPER NAME]
 
-
-#### Notebooks:
-
-
-
 ___
 
 
@@ -25,12 +20,23 @@ This library run on Python 2.7 and unlike most python code, requries
  The cython code will need be compiled manually:  
  ```python setup.py build_ext --inplace```  
   
-## Todo!
-* Match the experiment number to match the manuscript draft. As they are labeled here,  
-    * Experiment 1: 3 Goals, 9 contexts
-    * Experiment 2: 4 Goals, 10 Contexts
-    * Experiment 3: 2 Goals, 6 contexts
-    
-* The analyses for experiment 3 will be updated as I fill in that section
-* Need to write a description with the list of files
----
+## Files List
+* For each experiment in the paper, there are two jupyter notebooks, one for simulations 
+(Generative Modeling) and another for human subject behavior (Analysis). For clarity, each is labeled
+by the number of goals in the experimental design.
+
+* `Exclusion Criteria.ipynb` contains the analyses used to exclude individual subjects. There
+is one notebook for all three 
+
+* The folder `models` contains the code for the computational models (e.g. joint clustering, 
+independent clustering, etc.), as well as the code need to generate experiments for simulations
+
+* `opt` contains various analysis functions used in the analyesis. This is done to maintain
+ readability in the jupyter notebooks
+ 
+* `data` contains deidentified subject data.
+
+* `psiTurk` contains the code to run the behavioral experiment. These are coded in javascript and
+ run on Amazon's mechanical turk via the psiTurk library [https://psiturk.org]. 
+
+
