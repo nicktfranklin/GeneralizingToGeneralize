@@ -240,10 +240,11 @@ def gen_task_param():
     list_action_map = []
 
     contexts_a0 = randomize_context_order_with_autocorrelation(balance_a0, repeat_probability=0.25)
-    contexts_a1 = randomize_context_order_with_autocorrelation(balance_a1, repeat_probability=0.20)
+    contexts_a1 = randomize_context_order_with_autocorrelation(balance_a0, repeat_probability=0.20)
+    contexts_a2 = randomize_context_order_with_autocorrelation(balance_a1, repeat_probability=0.08)
     contexts_b = randomize_context_order_with_autocorrelation([6, 6, 6, 6], repeat_probability=0.08)
     contexts_b = [c + 7 for c in contexts_b]
-    contexts = list(contexts_a0) + list(contexts_a1) + list(contexts_b)
+    contexts = list(contexts_a0) + list(contexts_a1) + list(contexts_a2) + list(contexts_b)
     # print contexts
 
     for ii, ctx in enumerate(contexts):
