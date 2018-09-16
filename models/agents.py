@@ -75,6 +75,9 @@ class MultiStepAgent(object):
     def get_responsibilities(self):
         return None, None
 
+    def get_responsibilities_derivative(self):
+        return None, None
+
     def generate(self, evaluate=True, debug=False, prunning_threshold=None):
 
         # initialize variables
@@ -170,6 +173,10 @@ class MultiStepAgent(object):
                 ind, joint = self.get_responsibilities()
                 results_dict["Ind Weight"] = ind
                 results_dict["Joint Weight"] = joint
+                d_ind, d_joint = self.get_responsibilities_derivative()
+                results_dict["Ind dWeight"] = d_ind
+                results_dict["Joint dWeight"] = d_joint
+
 
             self.results.append(pd.DataFrame(results_dict, index=[ii]))
             ii += 1
@@ -749,7 +756,9 @@ class JointClusteringAgent(MultiStepAgent):
 class MetaAgent(FlatAgent):
 
     def __init__(self, task, alpha=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
-                 mapping_prior=0.001, goal_prior=0.001, mix_biases=[0.0, 0.0]):
+                 mapping_prior=0.001, goal_prior=0.001, mix_biases=None, update_new_c_only=False):
+        if mix_biases is None:
+            mix_biases = [0.0, 0.0]
 
         super(FlatAgent, self).__init__(task)
 
@@ -760,10 +769,14 @@ class MetaAgent(FlatAgent):
             task, alpha=alpha, gamma=gamma, inv_temp=inv_temp, stop_criterion=stop_criterion,
             mapping_prior=mapping_prior, goal_prior=goal_prior)
 
-        # self.current_agent = self.independent_agent
-        self.responsibilities = {'Ind': mix_biases[0], 'Joint': mix_biases[0]}
+        self.responsibilities = {'Ind': mix_biases[0], 'Joint': mix_biases[1]}
+        self.responsibilities_derivative = {'Ind': 0, 'Joint': 0}
         self.is_mixture = True
         self.choose_operating_model()
+
+        # debugging functions
+        self.update_new_c_only = update_new_c_only
+        self.visted_contexts = set()
 
     def augment_assignments(self, context):
         self.joint_agent.augment_assignments(context)
@@ -774,7 +787,13 @@ class MetaAgent(FlatAgent):
         self.independent_agent.prune_hypothesis_space(threshold)
 
     def update_goal_values(self, c, goal, r):
-        self.evaluate_mixing_agent(c, goal, r)
+        if not self.update_new_c_only:
+            self.evaluate_mixing_agent(c, goal, r)
+        else:
+            if c not in self.visted_contexts:
+                self.evaluate_mixing_agent(c, goal, r)
+            self.visted_contexts.add(c)
+
         self.joint_agent.update_goal_values(c, goal, r)
         self.independent_agent.update_goal_values(c, goal, r)
         self.choose_operating_model()
@@ -816,6 +835,8 @@ class MetaAgent(FlatAgent):
         # what is the predicted probability of the observed output for each model? Track the log prob
         self.responsibilities['Joint'] += np.log(r * r_hat_j + (1 - r) * (1 - r_hat_j))
         self.responsibilities['Ind']   += np.log(r * r_hat_i + (1 - r) * (1 - r_hat_i))
+        self.responsibilities_derivative['Joint'] = np.log(r * r_hat_j + (1 - r) * (1 - r_hat_j))
+        self.responsibilities_derivative['Ind']   = np.log(r * r_hat_i + (1 - r) * (1 - r_hat_i))
 
     def choose_operating_model(self):
         if np.random.rand() < self.get_joint_probability():
@@ -830,6 +851,9 @@ class MetaAgent(FlatAgent):
 
     def get_responsibilities(self):
         return self.responsibilities['Ind'], self.responsibilities['Joint']
+
+    def get_responsibilities_derivative(self):
+        return self.responsibilities_derivative['Ind'], self.responsibilities_derivative['Joint']
 
 
 class MinimumPathLengthAgent(object):
