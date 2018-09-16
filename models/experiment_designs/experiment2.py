@@ -232,7 +232,37 @@ def make_trial(context=0):
 
 
 def gen_task_param():
-    balance = [20, 10, 10, 20, 20, 40, 40]
+    balance_a0 = [6, 3, 3, 6, 6, 12, 12]
+    balance_a1 = [8, 4, 4, 8, 8, 16, 16]
+    list_start_locations = []
+    list_goals = []
+    list_context = []
+    list_action_map = []
+
+    contexts_a0 = randomize_context_order_with_autocorrelation(balance_a0, repeat_probability=0.25)
+    contexts_a1 = randomize_context_order_with_autocorrelation(balance_a1, repeat_probability=0.20)
+    contexts_b = randomize_context_order_with_autocorrelation([6, 6, 6, 6], repeat_probability=0.08)
+    contexts_b = [c + 7 for c in contexts_b]
+    contexts = list(contexts_a0) + list(contexts_a1) + list(contexts_b)
+    # print contexts
+
+    for ii, ctx in enumerate(contexts):
+        start_location, goal_dict, action_map = make_trial(ctx)
+
+        # define the trial and add to the lists
+        list_start_locations.append(start_location)
+        list_goals.append(goal_dict)
+        list_context.append(ctx)
+        list_action_map.append(action_map)
+
+    args = [list_start_locations, list_goals, list_context, list_action_map]
+    kwargs = dict(grid_world_size=grid_world_size)
+    return args, kwargs
+
+
+# this is a debugging experiment and doesn't match what was run
+def gen_task_param_small():
+    balance = [6, 3, 3, 6, 6, 12, 12]
     list_start_locations = []
     list_goals = []
     list_context = []
@@ -255,3 +285,4 @@ def gen_task_param():
     args = [list_start_locations, list_goals, list_context, list_action_map]
     kwargs = dict(grid_world_size=grid_world_size)
     return args, kwargs
+
