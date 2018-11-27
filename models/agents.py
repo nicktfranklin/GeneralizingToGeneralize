@@ -82,7 +82,6 @@ class MultiStepAgent(object):
 
         # initialize variables
         step_counter = 0
-        # results = list()
         times_seen_ctx = np.zeros(self.task.n_ctx)
         new_trial = True
         c = None
@@ -177,13 +176,16 @@ class MultiStepAgent(object):
                 results_dict["Ind dWeight"] = d_ind
                 results_dict["Joint dWeight"] = d_joint
 
-
             self.results.append(pd.DataFrame(results_dict, index=[ii]))
             ii += 1
 
             # evaluate stop condition
             if self.task.end_check():
                 break
+
+            # stop criterion
+            if step_counter > 1000:
+                return None
 
         return self.get_results()
 
@@ -847,6 +849,7 @@ class MetaAgent(FlatAgent):
             self.current_agent_name = 'Ind'
 
     def get_joint_probability(self):
+        # as an aside, this is an implicit softmax temperature of 1.0  for the RL model
         return np.exp(self.responsibilities['Joint'] - logsumexp(self.responsibilities.values()))
 
     def get_responsibilities(self):
@@ -855,6 +858,40 @@ class MetaAgent(FlatAgent):
     def get_responsibilities_derivative(self):
         return self.responsibilities_derivative['Ind'], self.responsibilities_derivative['Joint']
 
+
+class RLMetaAgent(MetaAgent):
+
+    def __init__(self, task, alpha=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
+                 mapping_prior=0.001, goal_prior=0.001, mix_biases=None, update_new_c_only=False,
+                 rl_rate=0.1, rl_beta=1.0):
+
+        super(RLMetaAgent, self).__init__(
+            task, alpha=alpha, gamma=gamma, inv_temp=inv_temp, stop_criterion=stop_criterion,
+            mapping_prior=mapping_prior, goal_prior=goal_prior, mix_biases=mix_biases,
+            update_new_c_only=update_new_c_only
+        )
+
+        self.lr = rl_rate
+        self.beta = rl_beta
+        self.responsibilities = {'Ind': mix_biases[0], 'Joint': mix_biases[1]}
+
+    def evaluate_mixing_agent(self, c, goal, r):
+        g = self.task.get_goal_index(goal)
+
+        # get the predicted goal value for each model
+        ii = np.argmax(self.joint_agent.log_belief)
+        h_g = self.joint_agent.goal_hypotheses[ii]
+        r_hat_joint = h_g.get_goal_probability(c)
+
+        ii = np.argmax(self.independent_agent.log_belief_goal)
+        h_g = self.independent_agent.goal_hypotheses[ii]
+        r_hat_ind = h_g.get_goal_probability(c)
+
+        # what is the predicted probability of the observed output for each model? Track the log prob
+        self.responsibilities['Joint'] += self.lr * (r - r_hat_joint[g])
+        self.responsibilities['Ind']   += self.lr * (r - r_hat_ind[g])
+        self.responsibilities_derivative['Joint'] = self.lr * (r - r_hat_joint[g])
+        self.responsibilities_derivative['Ind']   = self.lr * (r - r_hat_ind[g])
 
 class MinimumPathLengthAgent(object):
     """ this agent is not full agent -- it only returns the minimum path length for a predetermined goal, using only
