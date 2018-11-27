@@ -11,16 +11,13 @@ from models.experiment_designs.experiment_3a import gen_task_param as gen_task_p
 from models.experiment_designs.experiment_3b import gen_task_param as gen_task_param_exp_2_goals_b
 
 
-def batch_exp_2_goals(seed=0):
+def batch_exp_2_goals(seed=0, alpha_mu=0.0, alpha_scale=1.0, goal_prior=0.001):
     n_sims = 1000  # generate 1000 so we can draw multiple samples from the same size
 
     # alpha is sample from the distribution
     # log(alpha) ~ N(alpha_mu, alpha_scale)
-    alpha_mu = 0.0
-    alpha_scale = 1.0
 
     inv_temp = 10.
-    goal_prior = 10e-20
     prunning_threshold = 10.0
     evaluate = False
 
@@ -50,11 +47,14 @@ def batch_exp_2_goals(seed=0):
                 if meta:
                     p = np.random.uniform(0, 1)
                     agent_kwargs['mix_biases'] = [np.log(p), np.log(1 - p)]
-                    agent_kwargs['update_new_c_only'] = True
+                    agent_kwargs['update_new_c_only'] = False
 
                 agent = AgentClass(Experiment(*task_args, **task_kwargs), **agent_kwargs)
 
-                _res = agent.generate(evaluate=evaluate, prunning_threshold=prunning_threshold)
+                _res = None
+                while _res == None:
+                    _res = agent.generate(evaluate=evaluate, prunning_threshold=prunning_threshold)
+
                 _res[u'Model'] = name
                 _res[u'Iteration'] = [tt] * len(_res)
                 _res[u'Task'] = [task] * len(_res)
@@ -69,18 +69,16 @@ def batch_exp_2_goals(seed=0):
     results_meta = sim_agent(MetaAgent, name='Meta', meta=True)
     results = pd.concat([results_ic, results_jc, results_fl, results_meta])
 
-    results.to_pickle('exp_2_goals_batch_of_sims.pkl')
+    results.to_pickle('exp_2_goals_batch_of_sims_update_all_trials.pkl')
 
-def batch_exp_3_goals(seed=0):
+
+def batch_exp_3_goals(seed=0, alpha_mu=0.0, alpha_scale=1.0, goal_prior=0.001):
     n_sims = 1000  # generate 1000 so we can draw multiple samples from the same size
 
     # alpha is sample from the distribution
     # log(alpha) ~ N(alpha_mu, alpha_scale)
-    alpha_mu = 0.0
-    alpha_scale = 1.0
 
     inv_temp = 10.
-    goal_prior = 10e-20
     prunning_threshold = 10.0
     evaluate = False
 
@@ -106,7 +104,7 @@ def batch_exp_3_goals(seed=0):
             if meta:
                 p = np.random.uniform(0, 1)
                 agent_kwargs['mix_biases'] = [np.log(p), np.log(1 - p)]
-                agent_kwargs['update_new_c_only'] = True
+                agent_kwargs['update_new_c_only'] = False
 
             agent = AgentClass(Experiment(*task_args, **task_kwargs), **agent_kwargs)
 
@@ -122,19 +120,16 @@ def batch_exp_3_goals(seed=0):
     results_meta = sim_agent(MetaAgent, name='Meta', meta=True)
     results = pd.concat([results_ic, results_jc, results_fl, results_meta])
 
-    results.to_pickle('exp_3_goals_batch_of_sims.pkl')
+    results.to_pickle('exp_3_goals_batch_of_sims_update_all_trials.pkl')
 
 
-def batch_exp_4_goals(seed=0):
+def batch_exp_4_goals(seed=0, alpha_mu=0.0, alpha_scale=1.0, goal_prior=0.001):
     n_sims = 1000  # generate 1000 so we can draw multiple samples from the same size
 
     # alpha is sample from the distribution
     # log(alpha) ~ N(alpha_mu, alpha_scale)
-    alpha_mu = 0.0
-    alpha_scale = 1.0
 
     inv_temp = 10.
-    goal_prior = 10e-20
     prunning_threshold = 10.0
     evaluate = False
 
@@ -176,10 +171,10 @@ def batch_exp_4_goals(seed=0):
     results_meta = sim_agent(MetaAgent, name='Meta', meta=True)
     results = pd.concat([results_ic, results_jc, results_fl, results_meta])
 
-    results.to_pickle('exp_4_goals_batch_of_sims.pkl')
+    results.to_pickle('exp_4_goals_batch_of_sims_update_all_trials.pkl')
 
 
 if __name__ == "__main__":
     batch_exp_2_goals()
-    batch_exp_3_goals(32153659)
+    batch_exp_3_goals()
     batch_exp_4_goals()
