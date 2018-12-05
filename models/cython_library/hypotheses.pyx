@@ -21,7 +21,7 @@ cdef class Hypothesis(object):
         pass
 
 cdef class MappingCluster(object):
-    cdef double [:,::1] mapping_history, mapping_mle, pr_aa_given_a
+    cdef double [:,::1] mapping_history, mapping_mle, pr_aa_given_a, log_pr_aa_given_a
     cdef double [:] abstract_action_counts, primitive_action_counts
     cdef int n_primitive_actions, n_abstract_actions
     cdef double mapping_prior
@@ -39,12 +39,15 @@ cdef class MappingCluster(object):
         primitive_action_counts = np.ones(n_primitive_actions, dtype=DTYPE) * mapping_prior * n_abstract_actions
         pr_aa_given_a = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE) * \
                         (1.0 / n_abstract_actions)
+        log_pr_aa_given_a = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE) * \
+                        (1.0 / n_abstract_actions)
 
         self.mapping_history = mapping_history
         self.abstract_action_counts = abstract_action_counts
         self.mapping_mle = mapping_mle
         self.primitive_action_counts = primitive_action_counts
         self.pr_aa_given_a = pr_aa_given_a
+        self.log_pr_aa_given_a = log_pr_aa_given_a
 
         self.n_primitive_actions = n_primitive_actions
         self.n_abstract_actions = n_abstract_actions
@@ -52,22 +55,32 @@ cdef class MappingCluster(object):
 
     def update(self, int a, int aa):
         cdef int aa0, a0
+        cdef float p, mh, aa_count
+
         self.mapping_history[a, aa] += 1.0
         self.abstract_action_counts[aa] += 1.0
         self.primitive_action_counts[a] += 1.0
 
         for aa0 in range(self.n_abstract_actions):
+            aa_count = self.abstract_action_counts[aa0]
+
             for a0 in range(self.n_primitive_actions):
-                self.mapping_mle[a0, aa0] = self.mapping_history[a0, aa0] / self.abstract_action_counts[aa0]
+                mh = self.mapping_history[a0, aa0]
+                self.mapping_mle[a0, aa0] =  mh / aa_count
 
                 # p(A|a, k) estimator
-                self.pr_aa_given_a[a0, aa0] = self.mapping_history[a0, aa0] / self.primitive_action_counts[a0]
+                p = mh / self.primitive_action_counts[a0]
+                self.pr_aa_given_a[a0, aa0] = p
+                self.log_pr_aa_given_a[a0, aa0] = log(p)
 
     def get_mapping_mle(self, int a, int aa):
         return self.mapping_mle[a, aa]
 
     def get_likelihood(self, int a, int aa):
         return self.pr_aa_given_a[a, aa]
+
+    def get_log_likelihood(self, int a, int aa):
+        return self.log_pr_aa_given_a[a, aa]
 
     def deep_copy(self):
         cdef int a, aa, idx
@@ -117,21 +130,26 @@ cdef class MappingHypothesis(object):
     def update_mapping(self, int c, int a, int aa):
         cdef int k = self.cluster_assignments[c]
         cdef MappingCluster cluster = self.clusters[k]
+        cdef (int, int, int) exp
+
         cluster.update(a, aa)
         self.clusters[k] = cluster
 
         # need to store all experiences for log probability calculations
-        self.experience.append((k, a, aa))
+        exp = k, a, aa
+        self.experience.append(exp)
 
     def get_log_likelihood(self):
         cdef double log_likelihood = 0
+        cdef (int, int, int) exp
         cdef int k, a, aa
         cdef MappingCluster cluster
 
         #loop through experiences and get posterior
-        for k, a, aa in self.experience:
+        for exp in self.experience:
+            k, a, aa = exp
             cluster = self.clusters[k]
-            log_likelihood += log(cluster.get_likelihood(a, aa))
+            log_likelihood += cluster.get_log_likelihood(a, aa)
 
         return log_likelihood
 
@@ -151,12 +169,13 @@ cdef class MappingHypothesis(object):
             self.mapping_prior
         )
 
-        cdef int k, a, aa
+        cdef int k, c
         cdef MappingCluster cluster
+        cdef (int, int, int) exp
 
         _h_copy.cluster_assignments = {c: k for c, k in self.cluster_assignments.iteritems()}
         _h_copy.clusters = {k: cluster.deep_copy() for k, cluster in self.clusters.iteritems()}
-        _h_copy.experience = [(k, a, aa) for k, a, aa in self.experience]
+        _h_copy.experience = [exp for exp in self.experience]
         _h_copy.prior_log_prob = get_prior_log_probability(_h_copy.cluster_assignments, _h_copy.alpha)
 
         return _h_copy
@@ -230,7 +249,6 @@ cdef class GoalCluster(object):
         return _cluster_copy
 
 
-
 cdef class GoalHypothesis(object):
     cdef int n_goals
     cdef double log_prior, alpha, goal_prior
@@ -254,18 +272,22 @@ cdef class GoalHypothesis(object):
     def update(self, int c, int goal, int r):
         cdef int k = self.cluster_assignments[c]
         cdef GoalCluster cluster = self.clusters[k]
+        cdef (int, int, int) exp
         cluster.update(goal, r)
         self.clusters[k] = cluster
 
-        self.experience.append((k, goal, r))
+        exp = (k, goal, r)
+        self.experience.append(exp)
 
     def get_log_likelihood(self):
         cdef double log_likelihood = 0
         cdef int k, goal, r
         cdef GoalCluster cluster
+        cdef (int, int, int) exp
 
         #loop through experiences and get posterior
-        for k, goal, r in self.experience:
+        for exp in self.experience:
+            k, goal, r = exp
             cluster = self.clusters[k]
             log_likelihood += log(cluster.get_observation_probability(goal, r))
 
@@ -293,12 +315,13 @@ cdef class GoalHypothesis(object):
     def deep_copy(self):
         cdef GoalHypothesis _h_copy = GoalHypothesis(self.n_goals, self.alpha, self.goal_prior)
 
-        cdef int k, goal, r
+        cdef int c, k, goal, r
         cdef GoalCluster cluster
+        cdef (int, int, int) exp
 
         _h_copy.cluster_assignments = {c: k for c, k in self.cluster_assignments.iteritems()}
         _h_copy.clusters = {k: cluster.deep_copy() for k, cluster in self.clusters.iteritems()}
-        _h_copy.experience = [(k, goal, r) for k, goal, r in self.experience]
+        _h_copy.experience = [exp for exp in self.experience]
         _h_copy.log_prior = get_prior_log_probability(_h_copy.cluster_assignments, _h_copy.alpha)
 
         return _h_copy

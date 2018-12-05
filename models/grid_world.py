@@ -50,7 +50,7 @@ class GridWorld(object):
         # define movements as change in x and y position:
         self.cardinal_direction_key = {u'up': (0, 1), u'down': (0, -1), u'left': (-1, 0), u'right': (1, 0)}
         self.abstract_action_key = {dir_: ii for ii, dir_ in enumerate(self.cardinal_direction_key.keys())}
-        self.abstract_action_key[u'wait'] = -1
+        self.abstract_action_key[u'wait'] = np.max(self.abstract_action_key.values()) + 1
 
         self.inverse_abstract_action_key = {ii: dir_ for dir_, ii in self.abstract_action_key.iteritems()}
 
