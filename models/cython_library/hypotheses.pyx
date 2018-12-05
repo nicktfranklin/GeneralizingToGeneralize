@@ -1,4 +1,4 @@
-# cython: profile=True, linetrace=True, boundscheck=True, wraparound=True
+# cython: profile=False, linetrace=False, boundscheck=False, wraparound=False
 from __future__ import division
 import numpy as np
 cimport numpy as np
@@ -31,9 +31,9 @@ cdef class MappingCluster(object):
         cdef double[:, ::1] mapping_history, mapping_mle, pr_aa_given_a
         cdef double[:] abstract_action_counts, primitive_action_counts
 
-        mapping_history = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=float) * mapping_prior
+        mapping_history = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE) * mapping_prior
         abstract_action_counts = np.ones(n_abstract_actions+1, dtype=float) *  mapping_prior * n_primitive_actions
-        mapping_mle = np.ones((n_primitive_actions, n_abstract_actions + 1),  dtype=float) * \
+        mapping_mle = np.ones((n_primitive_actions, n_abstract_actions + 1),  dtype=DTYPE) * \
                       (1.0 / n_primitive_actions)
 
         primitive_action_counts = np.ones(n_primitive_actions, dtype=DTYPE) * mapping_prior * n_abstract_actions
