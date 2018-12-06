@@ -79,6 +79,9 @@ cdef class MappingCluster(object):
     def get_log_likelihood(self, int a, int aa):
         return self.log_pr_aa_given_a[a, aa]
 
+    def get_log_likelihood_function(self):
+        return self.log_pr_aa_given_a
+
     def deep_copy(self):
         cdef int a, aa, idx, n_aa_w
 
@@ -159,12 +162,14 @@ cdef class MappingHypothesis(object):
         cdef double log_likelihood = 0
         cdef unsigned int k, k0, a, aa, t
         cdef MappingCluster cluster
+        cdef double [:, ::1] ll_func
 
         #loop through experiences and get posterior
         for k in self.visited_clusters:
 
             # pre-cache cluster lookup b/c it is slow
             cluster = self.clusters[k]
+            ll_func = cluster.get_log_likelihood_function()
 
             # now loop through and only pull the values for the current clusters
             t = 0
@@ -173,7 +178,7 @@ cdef class MappingHypothesis(object):
                 if k == k0:
                     a = self.experience_a[t]
                     aa = self.experience_aa[t]
-                    log_likelihood += cluster.get_log_likelihood(a, aa)
+                    log_likelihood += ll_func[a, aa]
                 t += 1
 
         return log_likelihood
