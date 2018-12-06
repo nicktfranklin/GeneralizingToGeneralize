@@ -110,6 +110,7 @@ cdef class MappingHypothesis(object):
     cdef vector[int] experience_a
     cdef vector[int] experience_aa
     cdef int n_abstract_actions, n_primitive_actions, t
+    cdef list visited_clusters
 
     def __init__(self, int n_primitive_actions, int n_abstract_actions,
                  float alpha, float mapping_prior):
@@ -135,6 +136,7 @@ cdef class MappingHypothesis(object):
         self.experience_a = experience_a
         self.experience_aa = experience_aa
         self.t = 0
+        self.visited_clusters = []
 
 
     def update_mapping(self, int c, int a, int aa):
@@ -150,23 +152,29 @@ cdef class MappingHypothesis(object):
         self.experience_aa.push_back(aa)
         self.t += 1
 
+        if k not in self.visited_clusters:
+            self.visited_clusters.append(k)
+
     def get_log_likelihood(self):
         cdef double log_likelihood = 0
-        cdef int k, k0, a, aa
+        cdef unsigned int k, k0, a, aa, t
         cdef MappingCluster cluster
 
         #loop through experiences and get posterior
-        for k in self.clusters.keys():
+        for k in self.visited_clusters:
+
             # pre-cache cluster lookup b/c it is slow
             cluster = self.clusters[k]
 
             # now loop through and only pull the values for the current clusters
-            for t in range(self.t):
+            t = 0
+            while t < self.t:
                 k0 = self.experience_k[t]
                 if k == k0:
                     a = self.experience_a[t]
                     aa = self.experience_aa[t]
                     log_likelihood += cluster.get_log_likelihood(a, aa)
+                t += 1
 
         return log_likelihood
 
@@ -192,6 +200,7 @@ cdef class MappingHypothesis(object):
         _h_copy.cluster_assignments = {c: k for c, k in self.cluster_assignments.iteritems()}
         _h_copy.clusters = {k: cluster.deep_copy() for k, cluster in self.clusters.iteritems()}
         _h_copy.prior_log_prob = get_prior_log_probability(_h_copy.cluster_assignments, _h_copy.alpha)
+        _h_copy.visited_clusters = [k for k in self.visited_clusters]
         _h_copy.t = self.t
         for t in range(self.t):
             _h_copy.experience_k.push_back(self.experience_k[t])
