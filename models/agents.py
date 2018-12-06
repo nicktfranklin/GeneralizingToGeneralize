@@ -90,35 +90,6 @@ class MultiStepAgent(object):
         kl_goal_pmf = None
         kl_map_pmf = None
         ii = 0
-        results_dict = {
-            'Context': list(),
-            'Start Location': list(),
-            'Key-press': list(),
-            'End Location': list(),
-            'Action Map': list(),
-            'Walls': list(),
-            'Action': list(),  # the cardinal movement, in words
-            'Reward': list(),
-            'In Goal': list(),
-            'Chosen Goal': list(),
-            'Steps Taken': list(),
-            'Goal Locations': list(),
-            'Trial Number': list(),
-            'Times Seen Context': list()
-        }
-        if debug:
-            results_dict['Action Probability'] = list()
-
-        if evaluate:
-            results_dict['Goal KL Divergence'] = list()
-            results_dict['Map KL Divergence'] = list()
-
-        if self.is_mixture:
-            results_dict['Joint Probability'] = list()
-            results_dict["Ind Weight"] = list()
-            results_dict["Joint Weight"] = list()
-            results_dict["Ind dWeight"] = list()
-            results_dict["Joint dWeight"] = list()
 
         while True:
 
@@ -175,39 +146,37 @@ class MultiStepAgent(object):
                 self.update_goal_values(c, goal_id, r)
                 new_trial = True
 
-            results_dict['Context'].append(c)
-            results_dict['Start Location'].append([start_location])
-            results_dict['Key-press'].append(action)
-            results_dict['End Location'].append([end_location])
-            results_dict['Action Map'].append([action_map])
-            results_dict['Walls'].append([walls])
-            results_dict['Action'].append(aa)
-            results_dict['Reward'].append(r)
-            results_dict['In Goal'].append(goal_id is not None)
-            results_dict['Chosen Goal'].append([goal_id])
-            results_dict['Steps Taken'].append(step_counter)
-            results_dict['Goal Locations'].append([goal_locations])
-            results_dict['Trial Number'].append(t),
-            results_dict['Times Seen Context'].append(times_seen_ctx[c])
-            if debug:
-                results_dict['Action Probability'].append(p)
+            results_dict = {
+                'Context': c,
+                'Start Location': [start_location],
+                'Key-press': action,
+                'End Location': [end_location],
+                'Action Map': [action_map],
+                'Walls': [walls],
+                'Action': aa,  # the cardinal movement, in words
+                'Reward': r,
+                'In Goal': goal_id is not None,
+                'Chosen Goal': goal_id,
+                'Steps Taken': step_counter,
+                'Goal Locations': [goal_locations],
+                'Trial Number': t,
+                'Times Seen Context': times_seen_ctx[c],
+                'Action Probability': p,
+            }
             if evaluate:
-                results_dict['Goal KL Divergence'].append([kl_goal_pmf])
-                results_dict['Map KL Divergence'].append([kl_map_pmf])
+                results_dict['Goal KL Divergence'] = kl_goal_pmf
+                results_dict['Map KL Divergence'] = kl_map_pmf
 
             if self.is_mixture:
-
-                results_dict['Joint Probability'].append(self.get_joint_probability())
-
+                results_dict['Joint Probability'] = self.get_joint_probability()
                 ind, joint = self.get_responsibilities()
+                results_dict["Ind Weight"] = ind
+                results_dict["Joint Weight"] = joint
                 d_ind, d_joint = self.get_responsibilities_derivative()
+                results_dict["Ind dWeight"] = d_ind
+                results_dict["Joint dWeight"] = d_joint
 
-                results_dict["Ind Weight"].append(ind)
-                results_dict["Joint Weight"].append(joint)
-                results_dict["Ind dWeight"].append(d_ind)
-                results_dict["Joint dWeight"].append(d_joint)
-
-            self.results = results_dict
+            self.results.append(results_dict)
             ii += 1
 
             # evaluate stop condition
@@ -221,7 +190,7 @@ class MultiStepAgent(object):
         return self.get_results()
 
     def get_results(self):
-        return pd.DataFrame(self.results)
+        return pd.DataFrame(self.results, index=range(len(self.results)))
 
 
 class FlatAgent(MultiStepAgent):
