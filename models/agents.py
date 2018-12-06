@@ -78,7 +78,7 @@ class MultiStepAgent(object):
     def get_responsibilities_derivative(self):
         return None, None
 
-    def generate(self, evaluate=True, debug=False, prunning_threshold=None):
+    def generate(self, evaluate=True, debug=False, pruning_threshold=None):
 
         # initialize variables
         step_counter = 0
@@ -101,7 +101,7 @@ class MultiStepAgent(object):
                 times_seen_ctx[c] += 1
                 step_counter = 0
 
-                self.prune_hypothesis_space(threshold=prunning_threshold)
+                self.prune_hypothesis_space(threshold=pruning_threshold)
                 if times_seen_ctx[c] == 1:
                     self.augment_assignments(c)
 
@@ -891,6 +891,7 @@ class RLMetaAgent(MetaAgent):
         self.responsibilities['Ind']   += self.lr * (r - r_hat_ind[g])
         self.responsibilities_derivative['Joint'] = self.lr * (r - r_hat_joint[g])
         self.responsibilities_derivative['Ind']   = self.lr * (r - r_hat_ind[g])
+
 
 class MinimumPathLengthAgent(object):
     """ this agent is not full agent -- it only returns the minimum path length for a predetermined goal, using only
