@@ -152,17 +152,21 @@ cdef class MappingHypothesis(object):
 
     def get_log_likelihood(self):
         cdef double log_likelihood = 0
-        cdef int k, a, aa
+        cdef int k, k0, a, aa
         cdef MappingCluster cluster
 
         #loop through experiences and get posterior
-        for t in range(self.t):
-            k = self.experience_k[t]
-            a = self.experience_a[t]
-            aa= self.experience_aa[t]
-
+        for k in self.clusters.keys():
+            # pre-cache cluster lookup b/c it is slow
             cluster = self.clusters[k]
-            log_likelihood += cluster.get_log_likelihood(a, aa)
+
+            # now loop through and only pull the values for the current clusters
+            for t in range(self.t):
+                k0 = self.experience_k[t]
+                if k == k0:
+                    a = self.experience_a[t]
+                    aa = self.experience_aa[t]
+                    log_likelihood += cluster.get_log_likelihood(a, aa)
 
         return log_likelihood
 
