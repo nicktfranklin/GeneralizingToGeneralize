@@ -1,4 +1,5 @@
 # cython: profile=False, linetrace=False, boundscheck=False, wraparound=False
+# distutils: language=c++
 from __future__ import division
 import numpy as np
 cimport numpy as np
@@ -27,17 +28,32 @@ cdef class MappingCluster(object):
 
         cdef double[:, ::1] mapping_history, mapping_mle, pr_aa_given_a, log_pr_aa_given_a
         cdef double[:] abstract_action_counts, primitive_action_counts
+        cdef int a, aa
 
-        mapping_history = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE) * mapping_prior
-        abstract_action_counts = np.ones(n_abstract_actions+1, dtype=float) *  mapping_prior * n_primitive_actions
-        mapping_mle = np.ones((n_primitive_actions, n_abstract_actions + 1),  dtype=DTYPE) * \
-                      (1.0 / n_primitive_actions)
+        mapping_history = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE)
+        abstract_action_counts = np.ones(n_abstract_actions+1, dtype=float)
+        mapping_mle = np.ones((n_primitive_actions, n_abstract_actions + 1),  dtype=DTYPE)
 
-        primitive_action_counts = np.ones(n_primitive_actions, dtype=DTYPE) * mapping_prior * n_abstract_actions
-        pr_aa_given_a = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE) * \
-                        (1.0 / n_abstract_actions)
-        log_pr_aa_given_a = np.zeros((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE) * \
-                        (1.0 / n_abstract_actions)
+        primitive_action_counts = np.ones(n_primitive_actions, dtype=DTYPE)
+        pr_aa_given_a = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE)
+        log_pr_aa_given_a = np.zeros((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE)
+
+
+        cdef double inv_n_a = 1.0/n_primitive_actions
+        cdef double inv_n_aa = 1.0/n_abstract_actions
+        for a in range(n_primitive_actions):
+            for aa in range(n_abstract_actions + 1):
+                mapping_history[a, aa] = mapping_prior
+                mapping_mle[a, aa] = inv_n_a
+                pr_aa_given_a[a, aa] = inv_n_aa
+
+        cdef double mp_X_naa = mapping_prior * n_abstract_actions
+        for a in range(n_primitive_actions):
+            primitive_action_counts[a] = mp_X_naa
+
+        cdef double mp_X_na = mapping_prior * n_primitive_actions
+        for aa in range(n_abstract_actions + 1):
+            abstract_action_counts[aa] = mp_X_na
 
         self.mapping_history = mapping_history
         self.abstract_action_counts = abstract_action_counts
