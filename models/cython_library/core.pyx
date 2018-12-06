@@ -151,29 +151,37 @@ cpdef np.ndarray[DTYPE_t] policy_evaluation(
         if delta < stop_criterion:
             return np.array(V)
 
+cdef int array_sum(int [:] array):
+    cdef int sum = 0
+    cdef int ii
+    for ii in range(len(array)):
+        sum += array[ii]
+    return sum
+
 cpdef double get_prior_log_probability(dict ctx_assignment, double alpha):
     """This takes in an assignment of contexts to groups and returns the
     prior probability over the assignment using a CRP
     :param alpha:
     :param ctx_assignment:
     """
-    cdef int ii, k0
+    cdef int ii, k0, t
     cdef double log_prob = 0
+    cdef list values = ctx_assignment.values()
 
-    cdef int n_ctx = len(ctx_assignment.keys())
+    cdef int n_ctx = len(values)
     cdef int k
-    if len(ctx_assignment) > 0:
-        k = max(ctx_assignment.values()) + 1
+    if n_ctx > 0:
+        k = max(values) + 1
     else:
         k = 1
+
     cdef int [:] n_k = np.zeros(k, dtype=INT_DTYPE)
 
-    for ii in ctx_assignment.keys():
-        k0 = ctx_assignment[ii]
+    for k0 in values:
         if n_k[k0] == 0:
-            log_prob += log(alpha / (np.sum(n_k) + alpha))
+            log_prob += log(alpha / (array_sum(n_k) + alpha))
         else:
-            log_prob += log(n_k[k0] / (np.sum(n_k) + alpha))
+            log_prob += log(n_k[k0] / (array_sum(n_k) + alpha))
         n_k[k0] += 1
 
     return log_prob
