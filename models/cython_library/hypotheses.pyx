@@ -6,6 +6,8 @@ cimport cython
 
 from core import get_prior_log_probability
 
+from libcpp.vector cimport vector
+
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
@@ -104,8 +106,10 @@ cdef class MappingHypothesis(object):
 
     cdef dict cluster_assignments, clusters
     cdef double prior_log_prob, alpha, mapping_prior
-    cdef list experience
-    cdef int n_abstract_actions, n_primitive_actions
+    cdef vector[int] experience_k
+    cdef vector[int] experience_a
+    cdef vector[int] experience_aa
+    cdef int n_abstract_actions, n_primitive_actions, t
 
     def __init__(self, int n_primitive_actions, int n_abstract_actions,
                  float alpha, float mapping_prior):
@@ -123,29 +127,40 @@ cdef class MappingHypothesis(object):
         self.prior_log_prob = 0.0
 
         # need to store all experiences for log probability calculations
-        self.experience = list()
+        cdef vector[int] experience_k = []
+        cdef vector[int] experience_a = []
+        cdef vector[int] experience_aa = []
+
+        self.experience_k = experience_k
+        self.experience_a = experience_a
+        self.experience_aa = experience_aa
+        self.t = 0
+
 
     def update_mapping(self, int c, int a, int aa):
         cdef int k = self.cluster_assignments[c]
         cdef MappingCluster cluster = self.clusters[k]
-        cdef (int, int, int) exp
 
         cluster.update(a, aa)
         self.clusters[k] = cluster
 
         # need to store all experiences for log probability calculations
-        exp = k, a, aa
-        self.experience.append(exp)
+        self.experience_k.push_back(k)
+        self.experience_a.push_back(a)
+        self.experience_aa.push_back(aa)
+        self.t += 1
 
     def get_log_likelihood(self):
         cdef double log_likelihood = 0
-        cdef (int, int, int) exp
         cdef int k, a, aa
         cdef MappingCluster cluster
 
         #loop through experiences and get posterior
-        for exp in self.experience:
-            k, a, aa = exp
+        for t in range(self.t):
+            k = self.experience_k[t]
+            a = self.experience_a[t]
+            aa= self.experience_aa[t]
+
             cluster = self.clusters[k]
             log_likelihood += cluster.get_log_likelihood(a, aa)
 
@@ -172,8 +187,12 @@ cdef class MappingHypothesis(object):
 
         _h_copy.cluster_assignments = {c: k for c, k in self.cluster_assignments.iteritems()}
         _h_copy.clusters = {k: cluster.deep_copy() for k, cluster in self.clusters.iteritems()}
-        _h_copy.experience = [exp for exp in self.experience]
         _h_copy.prior_log_prob = get_prior_log_probability(_h_copy.cluster_assignments, _h_copy.alpha)
+        _h_copy.t = self.t
+        for t in range(self.t):
+            _h_copy.experience_k.push_back(self.experience_k[t])
+            _h_copy.experience_a.push_back(self.experience_a[t])
+            _h_copy.experience_aa.push_back(self.experience_aa[t])
 
         return _h_copy
 
@@ -251,10 +270,12 @@ cdef class GoalCluster(object):
 
 
 cdef class GoalHypothesis(object):
-    cdef int n_goals
+    cdef int n_goals, t
     cdef double log_prior, alpha, goal_prior
     cdef dict cluster_assignments, clusters
-    cdef list experience
+    cdef vector[int] experience_k
+    cdef vector[int] experience_g
+    cdef vector[int] experience_r
 
     def __init__(self, int n_goals, float alpha, float goal_prior):
 
@@ -271,30 +292,40 @@ cdef class GoalHypothesis(object):
         self.clusters = clusters
 
         # initialize posterior
-        self.experience = experience
         self.log_prior = 1.0
+
+        cdef vector[int] experience_k = []
+        cdef vector[int] experience_g = []
+        cdef vector[int] experience_r = []
+
+        self.experience_k = experience_k
+        self.experience_g = experience_g
+        self.experience_r = experience_r
+        self.t = 0
 
     def update(self, int c, int goal, int r):
         cdef int k = self.cluster_assignments[c]
         cdef GoalCluster cluster = self.clusters[k]
-        cdef (int, int, int) exp
         cluster.update(goal, r)
         self.clusters[k] = cluster
 
-        exp = (k, goal, r)
-        self.experience.append(exp)
+        self.experience_k.push_back(k)
+        self.experience_g.push_back(goal)
+        self.experience_r.push_back(r)
+        self.t += 1
 
     def get_log_likelihood(self):
         cdef double log_likelihood = 0
-        cdef int k, goal, r
+        cdef int k, g, r
         cdef GoalCluster cluster
-        cdef (int, int, int) exp
 
         #loop through experiences and get posterior
-        for exp in self.experience:
-            k, goal, r = exp
+        for t in range(self.t):
+            k = self.experience_k[t]
+            g = self.experience_g[t]
+            r = self.experience_r[t]
             cluster = self.clusters[k]
-            log_likelihood += log(cluster.get_observation_probability(goal, r))
+            log_likelihood += log(cluster.get_observation_probability(g, r))
 
         return log_likelihood
 
@@ -320,14 +351,18 @@ cdef class GoalHypothesis(object):
     def deep_copy(self):
         cdef GoalHypothesis _h_copy = GoalHypothesis(self.n_goals, self.alpha, self.goal_prior)
 
-        cdef int c, k
+        cdef int c, k, t
         cdef GoalCluster cluster
-        cdef (int, int, int) exp
 
         _h_copy.cluster_assignments = {c: k for c, k in self.cluster_assignments.iteritems()}
         _h_copy.clusters = {k: cluster.deep_copy() for k, cluster in self.clusters.iteritems()}
-        _h_copy.experience = [exp for exp in self.experience]
         _h_copy.log_prior = get_prior_log_probability(_h_copy.cluster_assignments, _h_copy.alpha)
+
+        _h_copy.t = self.t
+        for t in range(self.t):
+            _h_copy.experience_k.push_back(self.experience_k[t])
+            _h_copy.experience_g.push_back(self.experience_g[t])
+            _h_copy.experience_r.push_back(self.experience_r[t])
 
         return _h_copy
 

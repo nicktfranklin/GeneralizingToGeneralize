@@ -12,5 +12,5 @@ import numpy as np
 setup(
     packages=["models/cython_library"],
     include_dirs=[np.get_include()],
-    ext_modules=cythonize("**/*.pyx"),
+    ext_modules=cythonize("**/*.pyx", language="c++"),
 )
