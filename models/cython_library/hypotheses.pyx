@@ -1,4 +1,4 @@
-# cython: profile=False, linetrace=False, boundscheck=False, wraparound=False
+# cython: profile=True, linetrace=True, boundscheck=False, wraparound=False
 # distutils: language=c++
 from __future__ import division
 import numpy as np
@@ -18,13 +18,14 @@ ctypedef np.int32_t INT_DTYPE_t
 cdef extern from "math.h":
     double log(double x)
 
-cdef class MappingCluster(object):
+
+cdef class MappingCluster:
     cdef double [:,::1] mapping_history, mapping_mle, pr_aa_given_a, log_pr_aa_given_a
     cdef double [:] abstract_action_counts, primitive_action_counts
     cdef int n_primitive_actions, n_abstract_actions
     cdef double mapping_prior
 
-    def __init__(self, int n_primitive_actions, int n_abstract_actions, float mapping_prior, bint set_init):
+    def __cinit__(self, int n_primitive_actions, int n_abstract_actions, float mapping_prior, bint set_init):
 
         cdef double[:, ::1] mapping_history, mapping_mle, pr_aa_given_a, log_pr_aa_given_a
         cdef double[:] abstract_action_counts, primitive_action_counts
@@ -32,7 +33,7 @@ cdef class MappingCluster(object):
         cdef double inv_n_a, inv_n_aa, mp_X_naa, mp_X_na
 
         mapping_history = np.ones((n_primitive_actions, n_abstract_actions + 1), dtype=DTYPE)
-        abstract_action_counts = np.ones(n_abstract_actions+1, dtype=float)
+        abstract_action_counts = np.ones(n_abstract_actions+1, dtype=DTYPE)
         mapping_mle = np.ones((n_primitive_actions, n_abstract_actions + 1),  dtype=DTYPE)
 
         primitive_action_counts = np.ones(n_primitive_actions, dtype=DTYPE)
@@ -68,7 +69,7 @@ cdef class MappingCluster(object):
         self.n_abstract_actions = n_abstract_actions
         self.mapping_prior = mapping_prior
 
-    def update(self, int a, int aa):
+    cdef update(self, int a, int aa):
         cdef int aa0, a0
         cdef float p, mh, aa_count
 
@@ -88,19 +89,19 @@ cdef class MappingCluster(object):
                 self.pr_aa_given_a[a0, aa0] = p
                 self.log_pr_aa_given_a[a0, aa0] = log(p)
 
-    cpdef double get_mapping_mle(self, int a, int aa):
+    cdef double get_mapping_mle(self, int a, int aa):
         return self.mapping_mle[a, aa]
 
-    cpdef double get_likelihood(self, int a, int aa):
+    cdef double get_likelihood(self, int a, int aa):
         return self.pr_aa_given_a[a, aa]
 
-    cpdef double get_log_likelihood(self, int a, int aa):
+    cdef double get_log_likelihood(self, int a, int aa):
         return self.log_pr_aa_given_a[a, aa]
 
-    cpdef double[:, ::1] get_log_likelihood_function(self):
+    cdef double[:, ::1] get_log_likelihood_function(self):
         return self.log_pr_aa_given_a
 
-    def deep_copy(self):
+    cdef deep_copy(self):
         cdef int a, aa, idx, n_aa_w
 
         cdef MappingCluster _cluster_copy = MappingCluster(self.n_primitive_actions, self.n_abstract_actions,
@@ -116,6 +117,7 @@ cdef class MappingCluster(object):
                 _cluster_copy.mapping_history[a, aa] = self.mapping_history[a, aa]
                 _cluster_copy.mapping_mle[a, aa] = self.mapping_mle[a, aa]
                 _cluster_copy.pr_aa_given_a[a, aa] = self.pr_aa_given_a[a, aa]
+                _cluster_copy.log_pr_aa_given_a[a, aa] = self.log_pr_aa_given_a[a, aa]
 
         for aa in range(n_aa_w):
             _cluster_copy.abstract_action_counts[aa] = self.abstract_action_counts[aa]
@@ -246,12 +248,12 @@ cdef class MappingHypothesis(object):
         self.cluster_assignments[c] = k
         self.prior_log_prob = get_prior_log_probability(self.cluster_assignments, self.alpha)
 
-cdef class GoalCluster(object):
+cdef class GoalCluster:
     cdef int n_goals
     cdef double set_visits, goal_prior
     cdef double [:]  goal_rewards_received, goal_reward_probability
 
-    def __init__(self, int n_goals, float goal_prior, bint set_init):
+    def __cinit__(self, int n_goals, float goal_prior, bint set_init):
         self.n_goals = n_goals
         self.goal_prior = goal_prior
 
@@ -271,7 +273,7 @@ cdef class GoalCluster(object):
         self.goal_rewards_received = goal_rewards_received
         self.goal_reward_probability = goal_reward_probability
 
-    def update(self, int goal, int r):
+    cdef update(self, int goal, int r):
         cdef double r0
         cdef int g0
 
@@ -288,18 +290,18 @@ cdef class GoalCluster(object):
         for g0 in range(self.n_goals):
             self.goal_reward_probability[g0] = self.goal_rewards_received[g0] / self.set_visits
 
-    cpdef bint is_visited(self):
+    cdef bint is_visited(self):
         return self.set_visits >= 1
 
-    cpdef double get_observation_probability(self, int goal, int r):
+    cdef double get_observation_probability(self, int goal, int r):
         if r == 0:
             return 1 - self.goal_reward_probability[goal]
         return self.goal_reward_probability[goal]
 
-    cpdef double [:] get_goal_pmf(self):
+    cdef double [:] get_goal_pmf(self):
         return self.goal_reward_probability
 
-    def deep_copy(self):
+    cdef deep_copy(self):
         cdef int g
 
         cdef GoalCluster _cluster_copy = GoalCluster(self.n_goals, self.goal_prior, 0)
