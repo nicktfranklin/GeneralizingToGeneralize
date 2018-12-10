@@ -199,12 +199,12 @@ def batch_exp_4_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
 if __name__ == "__main__":
     kwargs = dict(
         n_sims              = 1000,
-        goal_prior          = 1e-20,
-        mapping_prior       = 1e-20,
-        alpha_mu            = 0.0,
+        goal_prior          = 1e-10,
+        mapping_prior       = 1e-10,
+        alpha_mu            = -0.5,
         alpha_scale         = 1.0,
         pruning_threshold  = 100.,
-        tag                 = '_update_all_trials_gp=1e-20_prune=100_mu=0.0_scale=1.0'
+        tag                 = '_update_all_trials_gp=1e-20_prune=100_mu=-0.5_scale=1.0'
     )
 
     batch_exp_4_goals(**kwargs)

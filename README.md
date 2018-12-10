@@ -1,5 +1,4 @@
 # Simulations and analyses for [PAPER NAME]
-
 ___
 
 
@@ -22,8 +21,15 @@ This library run on Python 2.7 and unlike most python code, requries
   
 ## Files List
 * For each experiment in the paper, there are two jupyter notebooks, one for simulations 
-(Generative Modeling) and another for human subject behavior (Analysis). For clarity, each is labeled
-by the number of goals in the experimental design.
+(Generative Modeling) and another for human subject behavior (Analysis). The simulations are an example and do not match
+what was presented in the paper. 
+
+* The simulations presented in the paper were not stored for space considerations but can be re-generated. The script
+`batch_run_generative_models.py` will regenerate the simulations from seed. To regenerate the plots, 
+the script `merge_dataframes.py` needs to be run after to prepare the data and then the analysis of the simulations 
+can be run using the notebook `Generate figures from batches`. All together, this process can take several hours on a 
+modern laptop.
+
 
 * `Exclusion Criteria.ipynb` contains the analyses used to exclude individual subjects. There
 is one notebook for all three 
