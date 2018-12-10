@@ -18,7 +18,6 @@ def batch_exp_2_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
     # log(alpha) ~ N(alpha_mu, alpha_scale)
 
     evaluate = False
-    np.random.seed(seed)
 
     # pre generate a set of tasks for consistency.
     list_tasks_a = [gen_task_param_exp_2_goals_a() for _ in range(n_sims)]
@@ -29,6 +28,8 @@ def batch_exp_2_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
                   for _ in range(n_sims + n_sims)]
 
     def sim_agent(AgentClass, name='None', flat=False, meta=False):
+        np.random.seed(seed)
+
         tt = 0
 
         results = []
@@ -84,8 +85,6 @@ def batch_exp_3_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
     # log(alpha) ~ N(alpha_mu, alpha_scale)
 
     evaluate = False
-    np.random.seed(seed)
-
 
     # pre generate a set of tasks for consistency.
     list_tasks = [gen_task_param_exp_3_goals() for _ in range(n_sims)]
@@ -95,6 +94,8 @@ def batch_exp_3_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
                   for _ in range(n_sims)]
 
     def sim_agent(AgentClass, name='None', flat=False, meta=False):
+        np.random.seed(seed)
+
         results = []
         for ii, (task_args, task_kwargs) in tqdm(enumerate(list_tasks), total=len(list_tasks)):
 
@@ -143,7 +144,6 @@ def batch_exp_4_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
     # log(alpha) ~ N(alpha_mu, alpha_scale)
 
     evaluate = False
-    np.random.seed(seed)
 
     # pre generate a set of tasks for consistency.
     list_tasks = [gen_task_param_exp_4_goals() for _ in range(n_sims)]
@@ -153,6 +153,8 @@ def batch_exp_4_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
                   for _ in range(n_sims)]
 
     def sim_agent(AgentClass, name='None', flat=False, meta=False):
+        np.random.seed(seed)
+
         results = []
         for ii, (task_args, task_kwargs) in tqdm(enumerate(list_tasks), total=len(list_tasks)):
 
@@ -197,11 +199,12 @@ def batch_exp_4_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
 if __name__ == "__main__":
     kwargs = dict(
         n_sims              = 1000,
-        goal_prior          = 0.000001,
-        mapping_prior       = 0.000001,
+        goal_prior          = 1e-20,
+        mapping_prior       = 1e-20,
         alpha_mu            = 0.0,
-        prunning_threshold  = 25.,
-        tag                 = '_update_all_trials_gp=0.000001_prune=25_mu=0.0'
+        alpha_scale         = 1.0,
+        pruning_threshold  = 100.,
+        tag                 = '_update_all_trials_gp=1e-20_prune=100_mu=0.0_scale=1.0'
     )
 
     batch_exp_4_goals(**kwargs)
