@@ -6,4 +6,5 @@ build*
 /.ipynb_checkpoints/
 /build/
 Experiment3sim.pkl
+/.vscode/
 *.pyc

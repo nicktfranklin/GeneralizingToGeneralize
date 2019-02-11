@@ -761,7 +761,7 @@ class MetaAgent(FlatAgent):
         if mix_biases is None:
             mix_biases = [0.0, 0.0]
 
-        super(FlatAgent, self).__init__(task)
+        super(MetaAgent, self).__init__(task)
 
         self.joint_agent = JointClusteringAgent(
             task, alpha=alpha, gamma=gamma, inv_temp=inv_temp, stop_criterion=stop_criterion,
@@ -891,6 +891,51 @@ class RLMetaAgent(MetaAgent):
         self.responsibilities['Ind']   += self.lr * (r - r_hat_ind[g])
         self.responsibilities_derivative['Joint'] = self.lr * (r - r_hat_joint[g])
         self.responsibilities_derivative['Ind']   = self.lr * (r - r_hat_ind[g])
+
+
+class RLMetaAgent_UpdateActive(MetaAgent):
+
+    def __init__(self, task, alpha=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
+                 mapping_prior=0.001, goal_prior=0.001, mix_biases=None, update_new_c_only=False):
+
+        super(RLMetaAgent_UpdateActive, self).__init__(
+            task, alpha=alpha, gamma=gamma, inv_temp=inv_temp, stop_criterion=stop_criterion,
+            mapping_prior=mapping_prior, goal_prior=goal_prior, mix_biases=mix_biases,
+            update_new_c_only=update_new_c_only
+        )
+
+        self.counts = {'Ind': 0.5, 'Joint': 0.5}
+        self.responsibilities = {'Ind': np.exp(mix_biases[0]), 'Joint': np.exp(mix_biases[1])}
+
+    def evaluate_mixing_agent(self, c, goal, r):
+        g = self.task.get_goal_index(goal)
+
+        if self.current_agent_name == "Joint":
+            self.counts['Joint'] += 1.0
+            lr = 1.0 / self.counts['Joint']
+
+            # get the predicted goal value
+            ii = np.argmax(self.joint_agent.log_belief)
+            h_g = self.joint_agent.goal_hypotheses[ii]
+            r_hat_joint = h_g.get_goal_probability(c)
+            self.responsibilities['Joint'] += lr * (r - r_hat_joint[g])
+
+            self.responsibilities_derivative['Joint'] = lr * (r - r_hat_joint[g])
+            self.responsibilities_derivative['Ind'] = 0
+
+        else:
+            self.counts['Ind'] += 1.0
+            lr = 1.0 / self.counts['Ind']
+
+            ii = np.argmax(self.independent_agent.log_belief_goal)
+            h_g = self.independent_agent.goal_hypotheses[ii]
+            r_hat_ind = h_g.get_goal_probability(c)
+
+            # what is the predicted probability of the observed output for each model? Track the log prob
+            self.responsibilities['Ind'] += lr * (r - r_hat_ind[g])
+            self.responsibilities_derivative['Joint'] = 0
+            self.responsibilities_derivative['Ind']   = lr * (r - r_hat_ind[g])
+
 
 
 class MinimumPathLengthAgent(object):

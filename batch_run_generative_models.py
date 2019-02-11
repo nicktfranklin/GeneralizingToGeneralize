@@ -43,7 +43,7 @@ def batch_exp_2_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
                     agent_kwargs = dict(inv_temp=inv_temp, goal_prior=goal_prior)
 
                 if meta:
-                    p = np.random.uniform(0, 1)
+                    p = np.random.uniform(0.0, 1.00)
                     agent_kwargs['mix_biases'] = [np.log(p), np.log(1 - p)]
                     agent_kwargs['update_new_c_only'] = updated_new_c_only
 
@@ -106,7 +106,7 @@ def batch_exp_3_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
                 agent_kwargs = dict(inv_temp=inv_temp, goal_prior=goal_prior)
 
             if meta:
-                p = np.random.uniform(0, 1)
+                p = np.random.uniform(0, 1.00)
                 agent_kwargs['mix_biases'] = [np.log(p), np.log(1 - p)]
                 agent_kwargs['update_new_c_only'] = updated_new_c_only
 
@@ -165,7 +165,7 @@ def batch_exp_4_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
                 agent_kwargs = dict(inv_temp=inv_temp, goal_prior=goal_prior)
 
             if meta:
-                p = np.random.uniform(0, 1)
+                p = np.random.uniform(0.0, 1.00)
                 agent_kwargs['mix_biases'] = [np.log(p), np.log(1 - p)]
                 agent_kwargs['update_new_c_only'] = updated_new_c_only
 
@@ -203,8 +203,8 @@ if __name__ == "__main__":
         mapping_prior       = 1e-10,
         alpha_mu            = -0.5,
         alpha_scale         = 1.0,
-        pruning_threshold  = 100.,
-        tag                 = '_update_all_trials_gp=1e-20_prune=100_mu=-0.5_scale=1.0'
+        pruning_threshold   = 500.,
+        tag                 = '_update_all_trials__gp=1e-10_prune=500_mu=-0.5_scale=1.0'
     )
 
     batch_exp_4_goals(**kwargs)
