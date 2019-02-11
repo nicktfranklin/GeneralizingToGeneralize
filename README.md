@@ -1,4 +1,4 @@
-# Simulations and analyses for [PAPER NAME]
+# Simulations and analyses for "Generalizing to generalize: when (and when not) to be compositional in task structure learning"
 ___
 
 
