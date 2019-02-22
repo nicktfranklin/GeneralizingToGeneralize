@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from misc import sample_cmf, augment_assignments
 from grid_world import GridWorld
-from scipy.special import logsumexp
+from scipy.misc import logsumexp
 from cython_library import GoalHypothesis, MappingHypothesis, policy_iteration, value_iteration
 
 """ these agents differ from the generative agents I typically use in that I need to pass a transition
