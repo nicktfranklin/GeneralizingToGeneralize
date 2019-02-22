@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import norm
-from scipy.special import logsumexp
+from scipy.misc import logsumexp
 from tqdm import tqdm
 
 
