@@ -13,5 +13,6 @@ dependencies:
   - ipywidgets
   - tqdm
   - scikit-learn
+  - pymc3
   - pip:
     - cython
