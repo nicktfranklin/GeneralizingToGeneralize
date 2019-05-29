@@ -43,11 +43,11 @@ def main(tag):
     print "Done!"
 
 if __name__ == "__main__":
-    tag = '_update_all_trials_gp=1e-5_prune=100_mu=0.0_scale=1.0'
-    main(tag)
-
-    # tag = '_rl_active_only_gp=1e-10_prune=100_mu=0.0'
+    # tag = '_update_all_trials_gp=1e-5_prune=100_mu=0.0_scale=1.0'
     # main(tag)
+
+    tag = '_update_all_trials__gp=1e-10_prune=500_mu=-0.5_scale=1.0_invtemp_mu=2.0_invtemp_scale=0.5'
+    main(tag)
     #
     # tag = '_rl_active_only_gp=1e-10_prune=100_mu=-1.0'
     # main(tag)
