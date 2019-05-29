@@ -1,6 +1,8 @@
 # Simulations and analyses for "Generalizing to generalize: when (and when not) to be compositional in task structure learning"
 ___
 
+For details explaining the logic of the simulations and experiments, please refer to our paper: [bioRxiv](https://www.biorxiv.org/content/10.1101/547406v2)
+
 
 ### Installation Instructions
 
