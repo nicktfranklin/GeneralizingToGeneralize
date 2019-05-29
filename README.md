@@ -1,4 +1,4 @@
-# Simulations and analyses for [PAPER NAME]
+# Simulations and analyses for "Generalizing to generalize: when (and when not) to be compositional in task structure learning"
 ___
 
 
@@ -12,12 +12,14 @@ This library run on Python 2.7 and unlike most python code, requries
  The needed libraries are listed in the file `enviornments.yml`. If you have conda installed,
   this file can be used to create a virtual enviornment cython and the other dependencies:  
  ```conda env create --file environment.yml```
- 
+  
  This will create an envionment named "compgen", which you can activate via:
  ```source activate compgen```
 
  The cython code will need be compiled manually:  
  ```python setup.py build_ext --inplace```  
+ 
+ The entire installation process should take a few (10-15) minutes to complete.
   
 ## Files List
 * For each experiment in the paper, there are two jupyter notebooks, one for simulations 
