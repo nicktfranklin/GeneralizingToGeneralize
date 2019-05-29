@@ -214,7 +214,7 @@ def get_shortest_path_length(subject_data, grid_world_size=(8, 8), goal_key=None
             return path_lengths
 
 
-def prep_subj_model_fitting(subj_df, grid_world_size=(6, 6), goal_key=None):
+def prep_subj_model_fitting(subj_df, grid_world_size=(6, 6), goal_key=None, mapping_key=None):
 
     # really, I just need the contexts, the Chosen Goal,
     # Abstract action observed and the primitive action chosen
@@ -235,6 +235,10 @@ def prep_subj_model_fitting(subj_df, grid_world_size=(6, 6), goal_key=None):
             subj_df['Trial Number'].astype(int)
         ]).T
     prepped_subj_data.index = range(len(prepped_subj_data))
+
+    # make a vector of all of the mapping identities
+    if mapping_key is not None:
+        prepped_subj_data['Mapping'] = [mapping_key[c] for c in subj_df['Context'].astype(int)]
 
     return subj_task, prepped_subj_data
 
