@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from misc import sample_cmf, augment_assignments
 from grid_world import GridWorld
-from scipy.special import logsumexp
+from scipy.misc import logsumexp
 from cython_library import GoalHypothesis, MappingHypothesis, policy_iteration, value_iteration
 
 """ these agents differ from the generative agents I typically use in that I need to pass a transition
@@ -935,6 +935,136 @@ class RLMetaAgent_UpdateActive(MetaAgent):
             self.responsibilities['Ind'] += lr * (r - r_hat_ind[g])
             self.responsibilities_derivative['Joint'] = 0
             self.responsibilities_derivative['Ind']   = lr * (r - r_hat_ind[g])
+
+
+class QLearningAgent(FlatAgent):
+
+    def __init__(self, task, lr=0.1, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
+                 mapping_prior=0.001, goal_prior=0.001):
+        super(FlatAgent, self).__init__(task)
+
+        self.lr = lr
+        self.gamma = gamma
+        self.inv_temp = inv_temp
+        self.stop_criterion = stop_criterion
+
+
+        # initialize the hypothesis space
+        self.mapping_hypotheses = [
+            MappingHypothesis(self.task.n_primitive_actions, self.task.n_abstract_actions,
+                              1.0, mapping_prior)
+        ]
+
+        # initialize the belief spaces
+        # self.log_belief_goal = np.ones(1, dtype=float)
+        self.log_belief_map = np.ones(1, dtype=float)
+
+        # initialize the q-values for each of the goals as a dictionary
+        self.q = dict()
+        self.n_goals = self.task.n_goals
+
+    
+    def update_goal_values(self, c, goal, r):
+        goal_idx_num = self.task.get_goal_index(goal)
+
+        # pull the learned goal-values
+        q = self.q[c]
+
+        q[goal_idx_num] += self.lr * (r - q[goal_idx_num])
+
+        # cache the updated function
+        self.q[c] = q
+
+    def get_goal_probability(self, context):
+
+        # convert the q-values to goal selection probability
+        q = self.q[context]
+        goal_pmf = np.exp(q * self.inv_temp - logsumexp(q * self.inv_temp))
+
+        return goal_pmf
+
+    def augment_assignments(self, context):
+
+        # initialize q-values for the context
+        if context not in self.q.keys():
+            self.q[context] = np.ones(self.n_goals, dtype=float) / float(self.n_goals)
+
+        h_m = self.mapping_hypotheses[0]
+        assert type(h_m) is MappingHypothesis
+        h_m.add_new_context_assignment(context, context)
+
+        # don't need to update the belief for the flat agent
+
+
+class KalmanUCBAgent(FlatAgent):
+
+    def __init__(self, task, var_i=0.1, var_e=0.1, ucb_weight=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
+                 mapping_prior=0.001, goal_prior=0.001):
+        super(FlatAgent, self).__init__(task)
+
+        self.var_i = var_i  # innovation gain
+        self.var_e = var_e  # 
+        self.ucb_weight = ucb_weight
+        self.gamma = gamma
+        self.inv_temp = inv_temp
+        self.stop_criterion = stop_criterion
+
+
+        # initialize the hypothesis space
+        self.mapping_hypotheses = [
+            MappingHypothesis(self.task.n_primitive_actions, self.task.n_abstract_actions,
+                              1.0, mapping_prior)
+        ]
+
+        # initialize the belief spaces
+        # self.log_belief_goal = np.ones(1, dtype=float)
+        self.log_belief_map = np.ones(1, dtype=float)
+
+        # initialize the q-values for each of the goals as a dictionary
+        self.mus = dict()
+        self.sigmas = dict()
+        self.n_goals = self.task.n_goals
+
+    
+    def update_goal_values(self, c, goal, r):
+        goal_idx_num = self.task.get_goal_index(goal)
+
+        # pull the learned mus + sigmas
+        mus = self.mus[c]
+        sigmas = self.sigmas[c]
+
+        # calculate the Kalman Gain
+        sigmas = sigmas + self.var_i  # this is the correct update!
+        G = (sigmas[goal_idx_num] + self.var_i) / (sigmas[goal_idx_num] + self.var_e + self.var_i)
+
+        mus[goal_idx_num] += G * (r - mus[goal_idx_num])
+        sigmas[goal_idx_num] = (1 - G) * (sigmas[goal_idx_num] + self.var_i)
+
+        # cache the updated function
+        self.mus[c] = mus
+        self.sigmas[c] = sigmas
+
+    def get_goal_probability(self, context):
+
+        # convert the mus and sigmas to q values
+        q = self.mus[context] + self.sigmas[context] * self.ucb_weight
+
+        # convert to pmf
+        goal_pmf = np.exp(q * self.inv_temp - logsumexp(q * self.inv_temp))
+        return goal_pmf
+
+    def augment_assignments(self, context):
+
+        # initialize mu + sigmas for the context
+        if context not in self.mus.keys():
+            self.mus[context] = np.ones(self.n_goals, dtype=float) / float(self.n_goals)
+            self.sigmas[context] = np.ones(self.n_goals, dtype=float)
+
+        h_m = self.mapping_hypotheses[0]
+        assert type(h_m) is MappingHypothesis
+        h_m.add_new_context_assignment(context, context)
+
+        # don't need to update the belief for the flat agent
 
 
 
