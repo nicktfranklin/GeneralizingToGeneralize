@@ -60,7 +60,7 @@ class MultiStepAgent(object):
     def update_goal_values(self, c, goal, r):
         pass
 
-    def prune_hypothesis_space(self, threshold=50.):
+    def prune_hypothesis_space(self, threshold=50.,use_map=False):
         pass
 
     def augment_assignments(self, context):
@@ -78,7 +78,7 @@ class MultiStepAgent(object):
     def get_responsibilities_derivative(self):
         return None, None
 
-    def generate(self, evaluate=True, debug=False, pruning_threshold=None):
+    def generate(self, evaluate=True, debug=False, pruning_threshold=None, use_map=False):
 
         # initialize variables
         step_counter = 0
@@ -101,7 +101,7 @@ class MultiStepAgent(object):
                 times_seen_ctx[c] += 1
                 step_counter = 0
 
-                self.prune_hypothesis_space(threshold=pruning_threshold)
+                self.prune_hypothesis_space(threshold=pruning_threshold, use_map=use_map)
                 if times_seen_ctx[c] == 1:
                     self.augment_assignments(c)
 
@@ -184,7 +184,7 @@ class MultiStepAgent(object):
                 break
 
             # stop criterion
-            if step_counter > 1000:
+            if step_counter > 2000:
                 return None
 
         return self.get_results()
@@ -196,7 +196,7 @@ class MultiStepAgent(object):
 class FlatAgent(MultiStepAgent):
 
     def __init__(self, task, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
-                 mapping_prior=0.001, goal_prior=0.001):
+                 mapping_prior=0.001, goal_prior=0.001, epsilon=0.02):
         super(FlatAgent, self).__init__(task)
 
         self.gamma = gamma
@@ -419,7 +419,19 @@ class IndependentClusterAgent(FlatAgent):
         self.log_belief_map = _mapping_log_belief
         self.log_belief_goal = _goal_log_belief
 
-    def prune_hypothesis_space(self, threshold=50.):
+    def prune_hypothesis_space(self, threshold=50., use_map=False):
+        if use_map:
+
+            threshold = None
+
+            ii = np.argmax(self.log_belief_goal)
+            self.goal_hypotheses = [self.goal_hypotheses[ii]]
+            self.log_belief_goal = [self.log_belief_goal[ii]]
+
+            ii = np.argmax(self.log_belief_map)
+            self.mapping_hypotheses = [self.mapping_hypotheses[ii]]
+            self.log_belief_map = [self.log_belief_map[ii]]
+
         if threshold is not None:
             _log_belief_goal = []
             _log_belief_map = []
@@ -576,7 +588,18 @@ class JointClusteringAgent(MultiStepAgent):
         self.update_mapping_loglikelihood()
         self.update_belief()
 
-    def prune_hypothesis_space(self, threshold=50.):
+    def prune_hypothesis_space(self, threshold=50., use_map=False):
+        if use_map:
+
+            threshold = None
+
+            ii = np.argmax(self.log_belief)
+            self.goal_hypotheses = [self.goal_hypotheses[ii]]
+            self.mapping_hypotheses = [self.mapping_hypotheses[ii]]
+            self.goal_likelihood = [self.goal_likelihood[ii]]
+            self.map_likelihood = [self.map_likelihood[ii]]
+            self.log_belief = [self.log_belief[ii]]
+
         if threshold is not None:
             _goal_hypotheses = []
             _mapping_hypotheses = []
@@ -783,9 +806,9 @@ class MetaAgent(FlatAgent):
         self.joint_agent.augment_assignments(context)
         self.independent_agent.augment_assignments(context)
 
-    def prune_hypothesis_space(self, threshold=50.):
-        self.joint_agent.prune_hypothesis_space(threshold)
-        self.independent_agent.prune_hypothesis_space(threshold)
+    def prune_hypothesis_space(self, threshold=50., use_map=False):
+        self.joint_agent.prune_hypothesis_space(threshold,use_map)
+        self.independent_agent.prune_hypothesis_space(threshold,use_map)
 
     def update_goal_values(self, c, goal, r):
         if not self.update_new_c_only:
@@ -941,7 +964,7 @@ class QLearningAgent(FlatAgent):
 
     def __init__(self, task, lr=0.1, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
                  mapping_prior=0.001, goal_prior=0.001):
-        super(FlatAgent, self).__init__(task)
+        super(QLearningAgent, self).__init__(task)
 
         self.lr = lr
         self.gamma = gamma
@@ -995,6 +1018,59 @@ class QLearningAgent(FlatAgent):
 
         # don't need to update the belief for the flat agent
 
+class NoCTX_QLearningAgent(FlatAgent):
+
+    def __init__(self, task, lr=0.1, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
+                 mapping_prior=0.001, goal_prior=0.001):
+        super(NoCTX_QLearningAgent, self).__init__(task)
+
+        self.lr = lr
+        self.gamma = gamma
+        self.inv_temp = inv_temp
+        self.stop_criterion = stop_criterion
+
+
+        # initialize the hypothesis space
+        self.mapping_hypotheses = [
+            MappingHypothesis(self.task.n_primitive_actions, self.task.n_abstract_actions,
+                              1.0, mapping_prior)
+        ]
+
+        # initialize the belief spaces
+        # self.log_belief_goal = np.ones(1, dtype=float)
+        self.log_belief_map = np.ones(1, dtype=float)
+
+        # initialize the q-values for each of the goals as a dictionary
+        self.q = np.ones(self.task.n_goals, dtype=float) / float(self.task.n_goals)
+        self.n_goals = self.task.n_goals
+
+    
+    def update_goal_values(self, c, goal, r):
+        goal_idx_num = self.task.get_goal_index(goal)
+
+        # pull the learned goal-values
+        q = self.q
+
+        q[goal_idx_num] += self.lr * (r - q[goal_idx_num])
+
+        # cache the updated function
+        self.q = q
+
+    def get_goal_probability(self, context):
+
+        # convert the q-values to goal selection probability
+        q = self.q
+        goal_pmf = np.exp(q * self.inv_temp - logsumexp(q * self.inv_temp))
+
+        return goal_pmf
+
+    def augment_assignments(self, context):
+
+        h_m = self.mapping_hypotheses[0]
+        assert type(h_m) is MappingHypothesis
+        h_m.add_new_context_assignment(context, context)
+
+        # don't need to update the belief for the flat agent
 
 class KalmanUCBAgent(FlatAgent):
 

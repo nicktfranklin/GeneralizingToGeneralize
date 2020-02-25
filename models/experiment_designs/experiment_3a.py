@@ -233,10 +233,11 @@ def gen_task_param():
     list_context = []
     list_action_map = []
 
-    contexts_a = randomize_context_order_with_autocorrelation(balance, repeat_probability=0.25)
+    contexts_a0 = randomize_context_order_with_autocorrelation(balance, repeat_probability=0.20)
+    contexts_a1 = randomize_context_order_with_autocorrelation(balance, repeat_probability=0.08)
     contexts_b = [c + 3 for c, reps in enumerate([4, 4 ,8]) for _ in range(reps)]
     np.random.shuffle(contexts_b)
-    contexts = list(contexts_a) + list(contexts_b)
+    contexts = list(contexts_a0) + list(contexts_a1) + list(contexts_b)
 
     for ii, ctx in enumerate(contexts):
         start_location, goal_dict, action_map = make_trial(ctx)
