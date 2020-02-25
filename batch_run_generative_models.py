@@ -5,7 +5,7 @@ from tqdm import tqdm as tqdm
 
 from models.grid_world import Experiment
 from models.agents import IndependentClusterAgent, JointClusteringAgent, FlatAgent, MetaAgent
-from models.agents import QLearningAgent, KalmanUCBAgent
+from models.agents import QLearningAgent, KalmanUCBAgent, NoCTX_QLearningAgent
 from models.experiment_designs.experiment2 import gen_task_param as gen_task_param_exp_4_goals
 from models.experiment_designs.experiment1 import gen_task_param as gen_task_param_exp_3_goals
 from models.experiment_designs.experiment_3a import gen_task_param as gen_task_param_exp_2_goals_a
@@ -106,27 +106,31 @@ def batch_exp_2_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
         return pd.concat(results)
 
     results_ic = sim_agent(IndependentClusterAgent, name='Independent')
-    results_ic.to_pickle('exp_2_goals_batch_of_sims_joint{}.pkl'.format(tag))
+    results_ic.to_pickle('./data/exp_2_goals_batch_of_sims_joint{}.pkl'.format(tag))
     results_ic = None
 
     results_jc = sim_agent(JointClusteringAgent, name='Joint')
-    results_jc.to_pickle('exp_2_goals_batch_of_sims_indep{}.pkl'.format(tag))
+    results_jc.to_pickle('./data/exp_2_goals_batch_of_sims_indep{}.pkl'.format(tag))
     results_jc = None
 
     results_fl = sim_agent(FlatAgent, name='Flat', flat=True)
-    results_fl.to_pickle('exp_2_goals_batch_of_sims_flat{}.pkl'.format(tag))
+    results_fl.to_pickle('./data/exp_2_goals_batch_of_sims_flat{}.pkl'.format(tag))
     results_fl = None
 
+    results_q = sim_flat_agent(NoCTX_QLearningAgent, name='NoCTX_Q-Learner')
+    results_q.to_pickle('./data/exp_2_goals_batch_of_sims_nctxq{}.pkl'.format(tag))
+    results_q = None
+
     results_meta = sim_agent(MetaAgent, name='Meta', meta=True)
-    results_meta.to_pickle('exp_2_goals_batch_of_sims_meta{}.pkl'.format(tag))
+    results_meta.to_pickle('./data/exp_2_goals_batch_of_sims_meta{}.pkl'.format(tag))
     results_meta = None
 
     results_q = sim_flat_agent(QLearningAgent, name='Q-Learner')
-    results_q.to_pickle('exp_2_goals_batch_of_sims_q{}.pkl'.format(tag))
+    results_q.to_pickle('./data/exp_2_goals_batch_of_sims_q{}.pkl'.format(tag))
     results_q = None
 
     results_fl = sim_flat_agent(KalmanUCBAgent, name='KalmanUCB', kal=True)
-    results_fl.to_pickle('exp_2_goals_batch_of_sims_kal{}.pkl'.format(tag))
+    results_fl.to_pickle('./data/exp_2_goals_batch_of_sims_kal{}.pkl'.format(tag))
     results_fl = None
 
 
@@ -205,27 +209,31 @@ def batch_exp_3_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
         return pd.concat(results)
 
     results_ic = sim_agent(IndependentClusterAgent, name='Independent')
-    results_ic.to_pickle('exp_3_goals_batch_of_sims_joint{}.pkl'.format(tag))
+    results_ic.to_pickle('./data/exp_3_goals_batch_of_sims_joint{}.pkl'.format(tag))
     results_ic = None
 
     results_jc = sim_agent(JointClusteringAgent, name='Joint')
-    results_jc.to_pickle('exp_3_goals_batch_of_sims_indep{}.pkl'.format(tag))
+    results_jc.to_pickle('./data/exp_3_goals_batch_of_sims_indep{}.pkl'.format(tag))
     results_jc = None
 
     results_fl = sim_agent(FlatAgent, name='Flat', flat=True)
-    results_fl.to_pickle('exp_3_goals_batch_of_sims_flat{}.pkl'.format(tag))
+    results_fl.to_pickle('./data/exp_3_goals_batch_of_sims_flat{}.pkl'.format(tag))
     results_fl = None
 
+    results_q = sim_flat_agent(NoCTX_QLearningAgent, name='NoCTX_Q-Learner')
+    results_q.to_pickle('./data/exp_3_goals_batch_of_sims_nctxq{}.pkl'.format(tag))
+    results_q = None
+
     results_meta = sim_agent(MetaAgent, name='Meta', meta=True)
-    results_meta.to_pickle('exp_3_goals_batch_of_sims_meta{}.pkl'.format(tag))
+    results_meta.to_pickle('./data/exp_3_goals_batch_of_sims_meta{}.pkl'.format(tag))
     results_meta = None
 
     results_q = sim_flat_agent(QLearningAgent, name='Q-Learner')
-    results_q.to_pickle('exp_3_goals_batch_of_sims_q{}.pkl'.format(tag))
+    results_q.to_pickle('./data/exp_3_goals_batch_of_sims_q{}.pkl'.format(tag))
     results_q = None
 
     results_fl = sim_flat_agent(KalmanUCBAgent, name='KalmanUCB', kal=True)
-    results_fl.to_pickle('exp_3_goals_batch_of_sims_kal{}.pkl'.format(tag))
+    results_fl.to_pickle('./data/exp_3_goals_batch_of_sims_kal{}.pkl'.format(tag))
     results_fl = None
 
 
@@ -305,27 +313,31 @@ def batch_exp_4_goals(seed=0, n_sims=1000, alpha_mu=0.0, alpha_scale=1.0, goal_p
         return pd.concat(results)
 
     results_ic = sim_agent(IndependentClusterAgent, name='Independent')
-    results_ic.to_pickle('exp_4_goals_batch_of_sims_joint{}.pkl'.format(tag))
+    results_ic.to_pickle('./data/exp_4_goals_batch_of_sims_joint{}.pkl'.format(tag))
     results_ic = None
 
     results_jc = sim_agent(JointClusteringAgent, name='Joint')
-    results_jc.to_pickle('exp_4_goals_batch_of_sims_indep{}.pkl'.format(tag))
+    results_jc.to_pickle('./data/exp_4_goals_batch_of_sims_indep{}.pkl'.format(tag))
     results_jc = None
 
     results_fl = sim_agent(FlatAgent, name='Flat', flat=True)
-    results_fl.to_pickle('exp_4_goals_batch_of_sims_flat{}.pkl'.format(tag))
+    results_fl.to_pickle('./data/exp_4_goals_batch_of_sims_flat{}.pkl'.format(tag))
     results_fl = None
 
+    results_q = sim_flat_agent(NoCTX_QLearningAgent, name='NoCTX_Q-Learner')
+    results_q.to_pickle('./data/exp_4_goals_batch_of_sims_nctxq{}.pkl'.format(tag))
+    results_q = None
+    
     results_meta = sim_agent(MetaAgent, name='Meta', meta=True)
-    results_meta.to_pickle('exp_4_goals_batch_of_sims_meta{}.pkl'.format(tag))
+    results_meta.to_pickle('./data/exp_4_goals_batch_of_sims_meta{}.pkl'.format(tag))
     results_meta = None
 
     results_q = sim_flat_agent(QLearningAgent, name='Q-Learner')
-    results_q.to_pickle('exp_4_goals_batch_of_sims_q{}.pkl'.format(tag))
+    results_q.to_pickle('./data/exp_4_goals_batch_of_sims_q{}.pkl'.format(tag))
     results_q = None
 
     results_fl = sim_flat_agent(KalmanUCBAgent, name='KalmanUCB', kal=True)
-    results_fl.to_pickle('exp_4_goals_batch_of_sims_kal{}.pkl'.format(tag))
+    results_fl.to_pickle('./data/exp_4_goals_batch_of_sims_kal{}.pkl'.format(tag))
     results_fl = None
 
 
